@@ -5,7 +5,7 @@ const games = {}
 
 const io = new Server({
   cors: {
-    origin: "http://localhost:3000",
+    origin: ["http://127.0.0.1:3000" ,"http://localhost:3000"],
     methods: ["GET"]
   }
 });
@@ -28,30 +28,61 @@ io.on("connection", (socket) => {
 
     if (game === undefined) {
       callback({
-        state: "ROOM_NOT_FOUND"
-        })
+        state: "ROOM_NOT_FOUND",
+        players: []
+      })
       return
     }
 
     if (game.players.length >= 2) {
       callback({
-        state: "ROOM_FULL"
+        state: "ROOM_FULL",
+        players: []
       })
       return
     }
 
     game.join(playerId)
     socket.join(gameId)
-    socket.to(gameId).emit("update", game.players)
 
-    callback({
-      state: game.state,
-      players: game.players
-    })
+    socket.to(gameId).emit("update", game) // send new game state to other clients
+    callback(game) // send state to self
   })
 
   socket.on("startGame", () => {
+    const gameId = socket.handshake.query.gameId
+    const game = games[gameId]
 
+    if (game === undefined) {
+      return
+    }
+
+    if (game.players.length != 2) {
+      return
+    }
+
+    game.state = "STARTED"
+
+    io.to(gameId).emit("update", game)
+  })
+
+  socket.on("setMove", (move) => {
+    const gameId = socket.handshake.query.gameId
+    const playerId = socket.handshake.query.playerId
+    const game = games[gameId]
+    game.chooseMove(playerId, move)
+
+    if (game.bothMovesIn()) {
+      winner = game.getWinner()
+      io.to(gameId).emit("winner", winner)
+    }
+  })
+
+  socket.on("resetGame", () => {
+    const gameId = socket.handshake.query.gameId
+    games[gameId] = new Game()
+
+    io.to(gameId).emit("triggerReload")
   })
 
   socket.on("disconnect", () => {
@@ -61,7 +92,7 @@ io.on("connection", (socket) => {
 
     if (game !== undefined) {
       game.leave(playerId)
-      socket.to(gameId).emit("update", game.players)
+      socket.to(gameId).emit("update", game)
       return
     }
   });
