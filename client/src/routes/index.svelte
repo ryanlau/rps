@@ -1,6 +1,6 @@
 <script>
 	import io from 'socket.io-client';
-	const socket = io('ws://localhost:12382');
+	const socket = io('ws://167.172.0.224:8080');
 	import { goto } from '$app/navigation';
 
 	function createGame() {

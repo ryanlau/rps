@@ -5,7 +5,7 @@ const games = {}
 
 const io = new Server({
   cors: {
-    origin: ["http://127.0.0.1:3000" ,"http://localhost:3000"],
+    origin: ["https://rps-theta.vercel.app/"],
     methods: ["GET"]
   }
 });
@@ -98,4 +98,4 @@ io.on("connection", (socket) => {
   });
 });
 
-io.listen(12382);
+io.listen(8080);
