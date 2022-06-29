@@ -1,9 +1,16 @@
+const { readFileSync } = require('fs');
+const { createServer } = require("https");
 const { Server } = require("socket.io");
 const crypto = require("crypto");
 const Game = require("./game.js")
 const games = {}
 
-const io = new Server({
+const httpServer = createServer({
+	key: readFileSync("key.pem"),
+	cert: readFileSync("cert.pem")
+});
+
+const io = new Server(httpServer, {
   cors: {
     origin: ["https://rps-theta.vercel.app/"],
     methods: ["GET"]
@@ -98,4 +105,4 @@ io.on("connection", (socket) => {
   });
 });
 
-io.listen(8080);
+httpServer.listen(443);

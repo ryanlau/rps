@@ -13,7 +13,7 @@
 	let winner;
 
 	if (browser) {
-		socket = io('ws://167.172.0.224:8080', {
+		socket = io('wss://wss.ryanlau.xyz', {
 			query: {
 				playerId: localStorage.getItem('uuid'),
 				gameId: $page.params.id
